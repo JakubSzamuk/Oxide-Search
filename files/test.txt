@@ -1,1 +1,17 @@
-hello world how art thou
+hello world how art thou I am very good and this is being tokenised and sorted by a merge sort algorithm, hopefully this search engine will actually be fast because of the binary search
+
+In the vast expanse of the cosmos, where galaxies twirl in a cosmic ballet and stars shimmer like distant diamonds, the tapestry of existence unfolds with breathtaking complexity. In the boundless realms of the universe, particles dance to the symphony of quantum mechanics, weaving the fabric of reality in ways that defy the limits of human comprehension.
+
+As we traverse the cosmic highways of knowledge, delving into the depths of science and philosophy, we encounter the intricate interplay of forces that govern the fundamental aspects of our existence. From the microscopic intricacies of subatomic particles to the majestic grandeur of celestial bodies, the universe unfolds its secrets in a mesmerizing display of cosmic artistry.
+
+Amidst the cosmic vastness, Earth emerges as a tiny oasis of life, a pale blue dot suspended in the cosmic sea. On this remarkable speck of dust, life has flourished and evolved, giving rise to the astonishing diversity of living organisms that populate our planet. From the microscopic wonders of single-celled organisms to the majestic splendor of complex ecosystems, Earth is a testament to the tenacity of life in the face of cosmic challenges.
+
+Humanity, endowed with consciousness and curiosity, has embarked on a relentless quest for understanding. Through the ages, philosophers have pondered the nature of existence, scientists have unravelled the mysteries of the natural world, and explorers have ventured into the unknown, pushing the boundaries of human knowledge.
+
+In the digital age, the information landscape has undergone a profound transformation, giving rise to vast virtual realms where information flows like a river of bits and bytes. Search engines, the gatekeepers of this digital domain, tirelessly index and retrieve information, allowing users to navigate the vast sea of data with the click of a button.
+
+As your search engine endeavors to navigate the vast corpus of information available on the internet, it grapples with the intricacies of algorithms, indexing methodologies, and relevance rankings. The digital tapestry, woven with the threads of countless websites, articles, and multimedia content, presents both challenges and opportunities for the intrepid explorer seeking knowledge in the virtual realm.
+
+In this ever-expanding landscape of information, your search engine serves as a digital compass, guiding you through the labyrinth of data to find the nuggets of wisdom and insight that await discovery. It is a tool that bridges the gap between the questions that linger in your mind and the vast reservoir of knowledge that resides in the interconnected nodes of the World Wide Web.
+
+So, as you embark on your digital odyssey, may your search engine be your steadfast companion, navigating the vast terrains of information to unveil the answers to your queries and illuminate the pathways of understanding in the vast cosmos of the internet.
