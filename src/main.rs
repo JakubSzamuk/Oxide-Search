@@ -1,15 +1,45 @@
 use std::fs;
 use std::path::PathBuf;
 
-#[derive(Debug)]
+fn mergeSort(arr: Vec<Token>) -> Vec<Token> {
+    fn merge(mut arr1: Vec<Token>, mut arr2: Vec<Token>) -> Vec<Token> {
+        let mut merged = Vec::new();
+
+        while (arr1.len() > 0 && arr2.len() > 0) {
+            if (arr1[0].val as u8 > arr2[0].val as u8) {
+                merged.push(arr2.remove(0));
+            } else {
+                merged.push(arr1.remove(0));
+            }
+        }
+
+        [merged, arr1, arr2].concat()
+    }
+
+    let half = ((arr.len() as i16) / 2).floor();
+    let firstHalf = mergeSort(arr[0..half].to_vec());
+    let secondHalf = mergeSort(arr[half..arr.len()].to_vec());
+
+    return merge(firstHalf, secondHalf);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+#[derive(Debug, Clone)]
 struct Token {
     pub val: char,
     pub index: usize,
     pub file: PathBuf
-}
-
-fn sort_tokens() {
-
 }
 
 fn index_files() {
@@ -28,7 +58,10 @@ fn index_files() {
     }
     // let mut indexed_no_duplicates = Vec::new();
 
-    println!("{:?}", index_values);
+    let indexed = mergeSort(index_values);
+    println!("{:?}", indexed);
+
+
 
 }
 
