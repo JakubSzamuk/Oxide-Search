@@ -1,6 +1,4 @@
 use std::{fs, thread};
-use std::path::PathBuf;
-use std::sync::mpsc;
 
 fn merge_sort(arr: Vec<Token>) -> Vec<Token> {
     if arr.len() <= 1 {return arr};
@@ -18,12 +16,15 @@ fn merge_sort(arr: Vec<Token>) -> Vec<Token> {
         [merged, arr1, arr2].concat()
     }
 
+    let mut arr2 = Vec::new();
+    arr.clone_into(&mut arr2);
+
 
     let handle_one = thread::spawn(move || {
         merge_sort(arr[0..((arr.len() as f32) / 2.).floor() as usize].to_vec())
     });
     let handle_two = thread::spawn(move || {
-        merge_sort(arr[((arr.len() as f32) / 2.).floor() as usize..arr.len()].to_vec())
+        merge_sort(arr2[((arr2.len() as f32) / 2.).floor() as usize..arr2.len()].to_vec())
     });
 
     merge(handle_one.join().unwrap(), handle_two.join().unwrap())
@@ -37,7 +38,7 @@ fn merge_sort(arr: Vec<Token>) -> Vec<Token> {
 struct Token {
     pub val: char,
     pub index: usize,
-    pub file: &'static str
+    // pub file: &'static str
 }
 
 fn index_files() {
@@ -50,7 +51,7 @@ fn index_files() {
             index_values.push(Token {
                 val: character,
                 index,
-                file: file_path_result.to_str().unwrap(),
+                // file: file_path_result.to_str().unwrap(),
             });
         }
     }
