@@ -65,8 +65,9 @@ fn index_files() {
     let mut handlers: Vec<JoinHandle<Vec<Token>>> = Vec::with_capacity(cores.get());
 
     for i in 0..cores.get() {
-        handlers[i] = thread::spawn(|| {
-            merge_sort(&index_values[(i.clone() - 1 as usize) * &sliceLength..i*&sliceLength].to_vec().clone())
+        let current_thread_slice = &index_values[(i.clone() - 1 as usize) * &sliceLength..i*&sliceLength];
+        handlers[i] = thread::spawn(move || {
+            merge_sort(&current_thread_slice.to_vec())
         });
     }
     let mut results: Vec<Vec<Token>> = Vec::with_capacity(cores.get());
