@@ -16,18 +16,17 @@ fn merge(mut arr1: Vec<Token>, mut arr2: Vec<Token>) -> Vec<Token> {
 
     [merged, arr1, arr2].concat()
 }
-fn merge_sort(arr: Vec<Token>) -> Vec<Token> {
-    if arr.len() <= 1 {return arr};
+fn merge_sort(arr: &Vec<Token>) -> Vec<Token> {
+    if arr.len() <= 1 {return arr.to_vec()};
 
-    merge(merge_sort(arr[0..((arr.len() as f32) / 2.).floor() as usize].to_vec()), merge_sort(arr[((arr.len() as f32) / 2.).floor() as usize..arr.len()].to_vec()))
+    merge(merge_sort(&arr[0..((arr.len() as f32) / 2.).floor() as usize].to_vec()), merge_sort(&arr[((arr.len() as f32) / 2.).floor() as usize..arr.len()].to_vec()).to_vec())
 }
 
-fn merge_remainders(arr: Vec<Vec<Token>>) -> Vec<Token> {
-    fn merge_iterator(arr1: Vec<Vec<Token>>) -> Vec<Vec<Token>> {
-        if arr1.len() == 2 {return arr1};
-
-        let mut result = Vec::new();
-        return merge_iterator([[merge(arr1[0].clone(), arr1[1].clone())], arr1[2..arr1.len()].to_vec()].concat());
+fn merge_remainders(arr: &mut Vec<Vec<Token>>) -> Vec<Token> {
+    fn merge_iterator(arr1: &mut Vec<Vec<Token>>) -> Vec<Vec<Token>> {
+        let arr1_len = arr1.len();
+        if arr1_len == 2 {return arr1.to_vec()};
+        return merge_iterator(&mut [[merge(arr1[0].clone(), arr1[1].clone())].as_mut_slice(), &mut arr1[2..arr1_len]].concat());
     }
 
     let merged = merge_iterator(arr);
@@ -46,7 +45,7 @@ struct Token {
 
 fn index_files() {
     let files = fs::read_dir("./files").unwrap();
-    let mut index_values = Vec::new();
+    let mut index_values: Vec<Token> = Vec::new();
     for filePath in files {
         let file_path_result = filePath.unwrap().path();
         let file = fs::read_to_string(&file_path_result).unwrap();
@@ -66,17 +65,17 @@ fn index_files() {
     let mut handlers: Vec<JoinHandle<Vec<Token>>> = Vec::with_capacity(cores.get());
 
     for i in 0..cores.get() {
-        let threadSlice = index_values[(i - 1 as usize) * sliceLength..i*sliceLength];
-        handlers[i] = thread::spawn(move || {
-            merge_sort(threadSlice.to_vec())
+        handlers[i] = thread::spawn(|| {
+            merge_sort(&index_values[(i.clone() - 1 as usize) * &sliceLength..i*&sliceLength].to_vec().clone())
         });
     }
     let mut results: Vec<Vec<Token>> = Vec::with_capacity(cores.get());
 
     handlers.iter().for_each(|handler| {
-        results.push(handler.join().unwrap());
+        let result = handler.join().unwrap();
+        results.push(result.clone());
     });
-    let final_indexing = merge_remainders(results);
+    let final_indexing = merge_remainders(&mut results);
     print!("{:?}", final_indexing);
 
 
