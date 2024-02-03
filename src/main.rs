@@ -1,7 +1,7 @@
 use std::{fs, thread};
 use std::num::NonZeroUsize;
 use std::thread::JoinHandle;
-
+use rayon::prelude::*;
 
 fn merge(mut arr1: Vec<Token>, mut arr2: Vec<Token>) -> Vec<Token> {
     let mut merged = Vec::new();
@@ -61,22 +61,12 @@ fn index_files() {
 
     let cores = thread::available_parallelism().unwrap();
     let sliceLength = index_values.len() / cores.get();
+    let mut slices = Vec::new();
 
-    let mut handlers: Vec<JoinHandle<Vec<Token>>> = Vec::with_capacity(cores.get());
+    index_values.par_chunks_mut(cores.get()).for_each(|slice| *slice = merge_sort(&slice.to_vec()).into())
 
-    for i in 0..cores.get() {
-        handlers[i] = thread::spawn(|| {
-            merge_sort(&index_values[(i.clone() - 1 as usize) * &sliceLength..i*&sliceLength].to_vec().clone())
-        });
-    }
-    let mut results: Vec<Vec<Token>> = Vec::with_capacity(cores.get());
 
-    handlers.iter().for_each(|handler| {
-        let result = handler.join().unwrap();
-        results.push(result.clone());
-    });
-    let final_indexing = merge_remainders(&mut results);
-    print!("{:?}", final_indexing);
+
 
 
 
