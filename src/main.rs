@@ -1,6 +1,25 @@
 use std::{fs, thread};
 use std::num::NonZeroUsize;
+use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
+use rayon::prelude::*;
+use clap::{Parser, Subcommand};
+
+
+#[derive(Parser, Debug)]
+#[clap(name = "basic")]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+    // #[clap(short, long, value_enum, default_value = "sqlite")]
+    // params
+}
+#[derive(Debug, Clone)]
+#[clap(rename_all = "kebab_case")]
+enum Commands {
+    Index,
+    Search
+}
 
 
 fn merge(mut arr1: Vec<Token>, mut arr2: Vec<Token>) -> Vec<Token> {
@@ -58,47 +77,36 @@ fn index_files() {
         }
     }
     // let mut indexed_no_duplicates = Vec::new();
-
+    let time = std::time::Instant::now();
     let cores = thread::available_parallelism().unwrap();
-    let sliceLength = index_values.len() / cores.get();
+    let parts_per_chunk = index_values.len() / cores.get();
 
-    let mut handlers: Vec<JoinHandle<Vec<Token>>> = Vec::with_capacity(cores.get());
-
-    for i in 0..cores.get() {
-        let current_thread_slice = &index_values[(i.clone() - 1 as usize) * &sliceLength..i*&sliceLength];
-        handlers[i] = thread::spawn(move || {
-            merge_sort(&current_thread_slice.to_vec())
-        });
-    }
-    let mut results: Vec<Vec<Token>> = Vec::with_capacity(cores.get());
-
-    handlers.iter().for_each(|handler| {
-        let result = handler.join().unwrap();
-        results.push(result.clone());
+    let mut slices = Arc::new(Mutex::new(Vec::new()));
+    index_values.par_chunks_mut(parts_per_chunk).for_each({
+        slices = slices.clone();
+        |slice: &mut [Token]| {
+            let sorted_slice = merge_sort(&slice.to_vec()).as_slice().to_owned();
+            slices.lock().unwrap().push(sorted_slice);
+        }
     });
-    let final_indexing = merge_remainders(&mut results);
-    print!("{:?}", final_indexing);
-
-
-
-
-
-
-
-
+    let merged = slices.lock().unwrap().to_vec();
+    // let merged = merge_remainders(&mut slices.lock().unwrap());
+    // let merged = merge_sort(&index_values);
+    println!("almost finished, {:?}             time: {}", merged, time.elapsed().as_secs_f64());
 
     // Make threads here
-
-
-
-
-
 }
 
 // Index files with tokens, {val: 'h', index: 0}, then search query use binary search to find starting characters and then narrow down by adding to their index to match the rest of the search term.
 
 
 fn main() {
-    index_files();
-}
+    let cli_args = Cli::parse();
 
+    match cli_args.command {
+        Commands::Index => {
+            index_files();
+        },
+        Commands::Search => {}
+    }
+}
