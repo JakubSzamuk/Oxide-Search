@@ -1,9 +1,10 @@
 use std::{fs, thread};
 use std::num::NonZeroUsize;
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use rayon::prelude::*;
-use clap::{ArgMatches, Command, Parser, Subcommand};
+use clap::{arg, ArgMatches, Command, Parser, Subcommand};
 
 
 fn cli() -> Command {
@@ -13,6 +14,7 @@ fn cli() -> Command {
         .subcommand(
             Command::new("index")
                 .about("Index the current files")
+                .args(vec![arg!(-f --file <DIR_PATH>)])
         )
 }
 
@@ -57,8 +59,14 @@ struct Token {
     // pub file: &'static str
 }
 
-fn index_files() {
-    let files = fs::read_dir("./files").expect("Could not find a files dir!");
+fn index_files(dir_path: Option<&String>) {
+    let path;
+    if let Some(dir) = dir_path {
+        path = dir.to_owned();
+    } else {
+        path = "./files".to_string();
+    }
+    let files = fs::read_dir(path).expect("Could not find a files dir!");
     let mut index_values: Vec<Token> = Vec::new();
     for filePath in files {
         let file_path_result = filePath.unwrap().path();
@@ -94,13 +102,22 @@ fn index_files() {
 
 // Index files with tokens, {val: 'h', index: 0}, then search query use binary search to find starting characters and then narrow down by adding to their index to match the rest of the search term.
 
+fn initialise() {
+
+}
+
 
 fn main() {
     let cli_args = cli().get_matches();
 
+
+    //TODO: Create an init command and actually make it search!
+
+
+
     match cli_args.subcommand() {
         Some(("index", sub_matches)) => {
-            index_files();
+            index_files(sub_matches.get_one::<String>("file"));
         },
         _ => {}
     }
