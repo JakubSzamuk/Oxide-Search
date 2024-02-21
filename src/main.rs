@@ -3,22 +3,17 @@ use std::num::NonZeroUsize;
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use rayon::prelude::*;
-use clap::{Parser, Subcommand};
+use clap::{ArgMatches, Command, Parser, Subcommand};
 
 
-#[derive(Parser, Debug)]
-#[clap(name = "basic")]
-struct Cli {
-    #[command(subcommand)]
-    command: Commands,
-    // #[clap(short, long, value_enum, default_value = "sqlite")]
-    // params
-}
-#[derive(Debug, Clone)]
-#[clap(rename_all = "kebab_case")]
-enum Commands {
-    Index,
-    Search
+fn cli() -> Command {
+    Command::new("oxidesearch")
+        .about("A simple search engine")
+        .subcommand_required(true)
+        .subcommand(
+            Command::new("index")
+                .about("Index the current files")
+        )
 }
 
 
@@ -63,7 +58,7 @@ struct Token {
 }
 
 fn index_files() {
-    let files = fs::read_dir("./files").unwrap();
+    let files = fs::read_dir("./files").expect("Could not find a files dir!");
     let mut index_values: Vec<Token> = Vec::new();
     for filePath in files {
         let file_path_result = filePath.unwrap().path();
@@ -101,12 +96,12 @@ fn index_files() {
 
 
 fn main() {
-    let cli_args = Cli::parse();
+    let cli_args = cli().get_matches();
 
-    match cli_args.command {
-        Commands::Index => {
+    match cli_args.subcommand() {
+        Some(("index", sub_matches)) => {
             index_files();
         },
-        Commands::Search => {}
+        _ => {}
     }
 }
