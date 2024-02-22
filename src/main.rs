@@ -1,10 +1,16 @@
 use std::{fs, thread};
+use std::fs::File;
+use std::hash::{DefaultHasher, Hash, Hasher};
+use std::io::Write;
 use std::num::NonZeroUsize;
 use std::path::PathBuf;
+use std::ptr::hash;
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
+use std::time::Instant;
 use rayon::prelude::*;
 use clap::{arg, ArgMatches, Command, Parser, Subcommand};
+use serde::{Serialize};
 
 
 fn cli() -> Command {
@@ -14,7 +20,7 @@ fn cli() -> Command {
         .subcommand(
             Command::new("index")
                 .about("Index the current files")
-                .args(vec![arg!(-f --file <DIR_PATH>)])
+                .args(vec![arg!(-f --file <DIR_PATH>), arg!(-o --output <OUT_PATH>)])
         )
 }
 
@@ -52,21 +58,21 @@ fn merge_remainders(arr: &mut Vec<Vec<Token>>) -> Vec<Token> {
 
 
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, Serialize)]
 struct Token {
     pub val: char,
     pub index: usize,
     // pub file: &'static str
 }
 
-fn index_files(dir_path: Option<&String>) {
+fn index_files(dir_path: Option<&String>, out_path: Option<&String>) {
     let path;
     if let Some(dir) = dir_path {
         path = dir.to_owned();
     } else {
         path = "./files".to_string();
     }
-    let files = fs::read_dir(path).expect("Could not find a files dir!");
+    let files = fs::read_dir(path).expect("Could not find the files dir!");
     let mut index_values: Vec<Token> = Vec::new();
     for filePath in files {
         let file_path_result = filePath.unwrap().path();
@@ -80,7 +86,6 @@ fn index_files(dir_path: Option<&String>) {
         }
     }
     // let mut indexed_no_duplicates = Vec::new();
-    let time = std::time::Instant::now();
     let cores = thread::available_parallelism().unwrap();
     let parts_per_chunk = index_values.len() / cores.get();
 
@@ -92,12 +97,21 @@ fn index_files(dir_path: Option<&String>) {
             slices.lock().unwrap().push(sorted_slice);
         }
     });
-    let merged = slices.lock().unwrap().to_vec();
-    // let merged = merge_remainders(&mut slices.lock().unwrap());
-    // let merged = merge_sort(&index_values);
-    println!("almost finished, {:?}             time: {}", merged, time.elapsed().as_secs_f64());
+    let mut part_merged = slices.lock().unwrap().to_vec();
+    let merged = merge_remainders(&mut slices.lock().unwrap());
+    let output_path;
+    if let Some(out) = out_path {
+        output_path = out.to_owned();
+    } else {
+        output_path = "./indeces/".to_string();
+    }
 
-    // Make threads here
+    if fs::read_dir(&output_path).is_err() {
+        fs::create_dir(&output_path).unwrap();
+    }
+    let mut hasher = DefaultHasher::new();
+    fs::write(format!("./{}/index-{:?}", &output_path, merged.hash(&mut hasher)), serde_json::to_string(&merged).expect("Failed to serialize tokens")).expect("Failed to output to file!");
+    hasher.finish();
 }
 
 // Index files with tokens, {val: 'h', index: 0}, then search query use binary search to find starting characters and then narrow down by adding to their index to match the rest of the search term.
@@ -117,7 +131,7 @@ fn main() {
 
     match cli_args.subcommand() {
         Some(("index", sub_matches)) => {
-            index_files(sub_matches.get_one::<String>("file"));
+            index_files(sub_matches.get_one::<String>("file"), sub_matches.get_one::<String>("output"));
         },
         _ => {}
     }
