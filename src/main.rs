@@ -65,6 +65,28 @@ struct Token {
     // pub file: &'static str
 }
 
+
+fn search(haystack: Vec<Token>, needle: String) -> usize {
+    fn bin_search(full_haystack: Vec<Token>, haystack: &[Token], needle: String) -> Token {
+        if haystack[0] == needle.chars().nth(0) {
+            for (char, index) in needle {
+                if char != haystack[haystack[0].index + index] {
+                    //TODO Implement duplicate search logic.
+                }
+            }
+        }
+        let mid = haystack.len() / 2;
+        if haystack[mid].val > needle[0] {
+            return bin_search(full_haystack, &haystack[0..mid], needle);
+        } else {
+            return bin_search(full_haystack, &haystack[mid..haystack.len() - 1], needle);
+        }
+    }
+    let result = bin_search(haystack, &haystack[0..haystack.len() - 1], "a".to_string());
+    println!("{:?}", result);
+    result.index
+}
+
 fn index_files(dir_path: Option<&String>, out_path: Option<&String>) {
     let path;
     if let Some(dir) = dir_path {
@@ -114,11 +136,14 @@ fn index_files(dir_path: Option<&String>, out_path: Option<&String>) {
     hasher.finish();
 }
 
-// Index files with tokens, {val: 'h', index: 0}, then search query use binary search to find starting characters and then narrow down by adding to their index to match the rest of the search term.
-
 fn initialise() {
 
 }
+
+
+
+
+
 
 
 fn main() {
@@ -133,6 +158,8 @@ fn main() {
         Some(("index", sub_matches)) => {
             index_files(sub_matches.get_one::<String>("file"), sub_matches.get_one::<String>("output"));
         },
-        _ => {}
+        _ => {
+
+        }
     }
 }
