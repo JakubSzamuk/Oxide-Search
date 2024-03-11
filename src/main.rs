@@ -66,25 +66,29 @@ struct Token {
 }
 
 
-fn search(haystack: Vec<Token>, needle: String) -> usize {
-    fn bin_search(full_haystack: Vec<Token>, haystack: &[Token], needle: String) -> Token {
-        if haystack[0] == needle.chars().nth(0) {
-            for (char, index) in needle {
-                if char != haystack[haystack[0].index + index] {
-                    //TODO Implement duplicate search logic.
+fn search(file_contents: Vec<char>, haystack: Vec<Token>, needle: String) -> usize {
+    fn bin_search(full_haystack: Vec<char>, haystack: &[Token], needle: String) -> Option<Token> {
+        if haystack.len() == 0 {
+            return None;
+        }
+        if haystack[0].val == needle.chars().nth(0).unwrap() {
+            for (index, character) in needle.char_indices() {
+                if character != full_haystack[haystack[0].index + index] {
+                    return bin_search(full_haystack, &haystack[1..haystack.len() - 1], needle);
                 }
             }
+            return Some(haystack[0]);
         }
         let mid = haystack.len() / 2;
-        if haystack[mid].val > needle[0] {
+        if haystack[mid].val > needle.chars().nth(0).unwrap() {
             return bin_search(full_haystack, &haystack[0..mid], needle);
         } else {
             return bin_search(full_haystack, &haystack[mid..haystack.len() - 1], needle);
         }
     }
-    let result = bin_search(haystack, &haystack[0..haystack.len() - 1], "a".to_string());
-    println!("{:?}", result);
-    result.index
+    let result = bin_search(file_contents, &haystack[0..haystack.len() - 1], needle);
+    println!("{:?}", result.unwrap().index);
+    result.unwrap().index
 }
 
 fn index_files(dir_path: Option<&String>, out_path: Option<&String>) {
@@ -96,10 +100,12 @@ fn index_files(dir_path: Option<&String>, out_path: Option<&String>) {
     }
     let files = fs::read_dir(path).expect("Could not find the files dir!");
     let mut index_values: Vec<Token> = Vec::new();
+    let mut file_contents: Vec<char> = Vec::new();
     for filePath in files {
         let file_path_result = filePath.unwrap().path();
         let file = fs::read_to_string(&file_path_result).unwrap();
         for (index, character) in file.char_indices() {
+            file_contents.push(character.clone());
             index_values.push(Token {
                 val: character,
                 index,
@@ -121,19 +127,22 @@ fn index_files(dir_path: Option<&String>, out_path: Option<&String>) {
     });
     let mut part_merged = slices.lock().unwrap().to_vec();
     let merged = merge_remainders(&mut slices.lock().unwrap());
-    let output_path;
-    if let Some(out) = out_path {
-        output_path = out.to_owned();
-    } else {
-        output_path = "./indeces/".to_string();
-    }
 
-    if fs::read_dir(&output_path).is_err() {
-        fs::create_dir(&output_path).unwrap();
-    }
-    let mut hasher = DefaultHasher::new();
-    fs::write(format!("./{}/index-{:?}", &output_path, merged.hash(&mut hasher)), serde_json::to_string(&merged).expect("Failed to serialize tokens")).expect("Failed to output to file!");
-    hasher.finish();
+    search(file_contents, merged, "epic secret that noone shall find".to_string());
+
+    // let output_path;
+    // if let Some(out) = out_path {
+    //     output_path = out.to_owned();
+    // } else {
+    //     output_path = "./indeces/".to_string();
+    // }
+    //
+    // if fs::read_dir(&output_path).is_err() {
+    //     fs::create_dir(&output_path).unwrap();
+    // }
+    // let mut hasher = DefaultHasher::new();
+    // fs::write(format!("./{}/index-{:?}", &output_path, merged.hash(&mut hasher)), serde_json::to_string(&merged).expect("Failed to serialize tokens")).expect("Failed to output to file!");
+    // hasher.finish();
 }
 
 fn initialise() {
